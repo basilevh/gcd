@@ -1,5 +1,9 @@
-# gcd
+# Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis
 
-Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis (In Submission)
+Project webpage: https://gcd.cs.columbia.edu/
 
-Coming soon!
+Paper: https://gcd.cs.columbia.edu/GCD_v3.pdf
+
+Arxiv: https://arxiv.org/abs/2405.14868
+
+Code and models coming soon!
