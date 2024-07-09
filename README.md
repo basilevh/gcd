@@ -6,7 +6,7 @@ Basile Van Hoorick, Rundi Wu, Ege Ozguroglu, Kyle Sargent, Ruoshi Liu, Pavel Tok
 
 Project webpage: https://gcd.cs.columbia.edu/
 
-Paper: https://gcd.cs.columbia.edu/GCD_v3.pdf
+Paper: https://gcd.cs.columbia.edu/GCD_v4.pdf
 
 Arxiv: https://arxiv.org/abs/2405.14868
 
