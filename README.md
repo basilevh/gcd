@@ -296,7 +296,7 @@ We define the validation + test set sizes to be 61 + 61 scenes respectively (eac
 
 ## Citations
 
-If you use (part of) this codebase in your work, please cite our paper:
+If you use this codebase in your work (or any significant part of it, such as the changes needed to finetune SVD), please cite our paper:
 ```
 @article{vanhoorick2024gcd,
     title={Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis},
