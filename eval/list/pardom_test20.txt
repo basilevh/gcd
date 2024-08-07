@@ -1,0 +1,22 @@
+
+/path/to/ParallelDomain-4D/data/scene_000048
+/path/to/ParallelDomain-4D/data/scene_000072
+/path/to/ParallelDomain-4D/data/scene_000074
+/path/to/ParallelDomain-4D/data/scene_000106
+/path/to/ParallelDomain-4D/data/scene_000165
+/path/to/ParallelDomain-4D/data/scene_000167
+/path/to/ParallelDomain-4D/data/scene_000173
+/path/to/ParallelDomain-4D/data/scene_000181
+/path/to/ParallelDomain-4D/data/scene_000294
+/path/to/ParallelDomain-4D/data/scene_000298
+/path/to/ParallelDomain-4D/data/scene_000310
+/path/to/ParallelDomain-4D/data/scene_000315
+/path/to/ParallelDomain-4D/data/scene_000337
+/path/to/ParallelDomain-4D/data/scene_000362
+/path/to/ParallelDomain-4D/data/scene_000365
+/path/to/ParallelDomain-4D/data/scene_000444
+# /path/to/ParallelDomain-4D/data/scene_000452  # invalid
+/path/to/ParallelDomain-4D/data/scene_000581
+/path/to/ParallelDomain-4D/data/scene_000626
+/path/to/ParallelDomain-4D/data/scene_000651
+/path/to/ParallelDomain-4D/data/scene_000663

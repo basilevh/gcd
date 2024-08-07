@@ -1,0 +1,265 @@
+model:
+  base_learning_rate: 2e-5
+  target: sgm.models.diffusion.DiffusionEngine
+  params:
+    scale_factor: 0.18215
+    disable_first_stage_autocast: True
+    disable_loss_fn_autocast: True
+    ckpt_path: ../pretrained/pardom_gradual_rgb.ckpt
+    ckpt_has_ema: False
+    use_ema: False
+    ema_decay_rate: 0.999
+    ablate_unet_scratch: False
+    en_and_decode_n_samples_a_time: 2
+    ft_strategy: everything
+
+    optimizer_config:
+      target: torch.optim.Adam
+
+    denoiser_config:
+      target: sgm.modules.diffusionmodules.denoiser.Denoiser
+      params:
+        scaling_config:
+          target: sgm.modules.diffusionmodules.denoiser_scaling.VScalingWithEDMcNoise
+
+    network_config:
+      target: sgm.modules.diffusionmodules.video_model.VideoUNet
+      params:
+        adm_in_channels: 768
+        num_classes: sequential
+        use_checkpoint: True
+        in_channels: 8
+        out_channels: 4
+        model_channels: 320
+        attention_resolutions: [4, 2, 1]
+        num_res_blocks: 2
+        channel_mult: [1, 2, 4, 4]
+        num_head_channels: 64
+        use_linear_in_transformer: True
+        transformer_depth: 1
+        context_dim: 1024
+        spatial_transformer_attn_type: softmax-xformers
+        extra_ff_mix_layer: True
+        use_spatial_context: True
+        merge_strategy: learned_with_images
+        video_kernel_size: [3, 1, 1]
+
+    conditioner_config:
+      target: sgm.modules.GeneralConditioner
+      params:
+        emb_models:
+        - input_key: cond_frames_without_noise
+          is_trainable: False
+          ucg_rate: 0.1
+          target: sgm.modules.encoders.modules.FrozenOpenCLIPImagePredictionEmbedder
+          params:
+            n_cond_frames: 1
+            n_copies: 1
+            open_clip_embedding_config:
+              target: sgm.modules.encoders.modules.FrozenOpenCLIPImageEmbedder
+              params:
+                freeze: True
+
+        - input_key: fps_id
+          is_trainable: False
+          target: sgm.modules.encoders.modules.ConcatTimestepEmbedderND
+          params:
+            outdim: 256
+
+        - input_key: motion_bucket_id
+          is_trainable: False
+          target: sgm.modules.encoders.modules.ConcatTimestepEmbedderND
+          params:
+            outdim: 256
+
+        - input_key: cond_frames
+          is_trainable: False
+          ucg_rate: 0.1
+          target: sgm.modules.encoders.modules.VideoPredictionEmbedderWithEncoder
+          params:
+            disable_encoder_autocast: True  # currently overwritten by disable_first_stage_autocast.
+            en_and_decode_n_samples_a_time: 2
+            n_cond_frames: 1
+            n_copies: 1
+            is_ae: True
+            encoder_config:
+              target: sgm.models.autoencoder.AutoencoderKLModeOnly
+              params:
+                embed_dim: 4
+                monitor: val/rec_loss
+                ddconfig:
+                  attn_type: vanilla-xformers
+                  double_z: True
+                  z_channels: 4
+                  resolution: 256
+                  in_channels: 3
+                  out_ch: 3
+                  ch: 128
+                  ch_mult: [1, 2, 4, 4]
+                  num_res_blocks: 2
+                  attn_resolutions: []
+                  dropout: 0.0
+                lossconfig:
+                  target: torch.nn.Identity
+
+        - input_key: cond_aug
+          is_trainable: False
+          target: sgm.modules.encoders.modules.ConcatTimestepEmbedderND
+          params:
+            outdim: 256
+
+        # NOTE: Uncomment this for 6-DoF camera control.
+        # Must be last in the list of embedders in order to get picked up by the aux emb.
+        # - input_key: scaled_relative_pose
+        #   is_trainable: True
+        #   target: sgm.modules.encoders.modules.CameraEmbedder
+        #   params:
+        #     embed_dim: 128
+        #     zero_init: False
+
+    sampler_config:
+      target: sgm.modules.diffusionmodules.sampling.EulerEDMSampler
+      params:
+        num_steps: 25
+
+        discretization_config:
+          target: sgm.modules.diffusionmodules.discretizer.EDMDiscretization
+          params:
+            sigma_max: 700.0
+
+        guider_config:
+          target: sgm.modules.diffusionmodules.guiders.LinearPredictionGuider
+          params:
+            num_frames: 14
+            max_scale: 2.5
+            min_scale: 1.0
+
+    loss_fn_config:
+      target: sgm.modules.diffusionmodules.loss.StandardDiffusionLoss
+      params:
+        harmonize_sigmas: True
+        focus_top: 0.1
+        focus_steps: 5000
+        batch2model_keys: ["image_only_indicator", "num_video_frames"]
+
+        loss_weighting_config:
+          target: sgm.modules.diffusionmodules.loss_weighting.EDMWeighting
+          params:
+            sigma_data: 1.0
+
+        sigma_sampler_config:
+          target: sgm.modules.diffusionmodules.sigma_sampling.EDMSampling
+          params:
+            p_mean: 1.0
+            p_std: 1.6
+
+    first_stage_config:
+      target: sgm.models.autoencoder.AutoencodingEngine
+      params:
+        loss_config:
+          target: torch.nn.Identity
+        regularizer_config:
+          target: sgm.modules.autoencoding.regularizers.DiagonalGaussianRegularizer
+        encoder_config: 
+          target: sgm.modules.diffusionmodules.model.Encoder
+          params:
+            attn_type: vanilla
+            double_z: True
+            z_channels: 4
+            resolution: 256
+            in_channels: 3
+            out_ch: 3
+            ch: 128
+            ch_mult: [1, 2, 4, 4]
+            num_res_blocks: 2
+            attn_resolutions: []
+            dropout: 0.0
+        decoder_config:
+          target: sgm.modules.autoencoding.temporal_ae.VideoDecoder
+          params:
+            attn_type: vanilla
+            double_z: True
+            z_channels: 4
+            resolution: 256
+            in_channels: 3
+            out_ch: 3
+            ch: 128
+            ch_mult: [1, 2, 4, 4]
+            num_res_blocks: 2
+            attn_resolutions: []
+            dropout: 0.0
+            video_kernel_size: [3, 1, 1]
+
+data:
+  target: sgm.data.pardom_arbit.ParallelDomainSynthViewModule
+  params:
+    dset_root: /path/to/ParallelDomain-4D/data
+    pcl_root: /path/to/ParallelDomain-4D/pcl
+    split_json: pd_split.json
+    train_videos: 1433
+    val_videos: 50
+    test_videos: 50
+    avail_frames: 50
+    model_frames: 14
+    input_frames: 14
+    output_frames: 14
+    center_crop: True
+    frame_width: 384
+    frame_height: 256
+    input_mode: ego_forward
+    output_mode: topdown1
+    input_modality: rgb
+    output_modality: rgb
+    dst_cam_position: [-8.0, 0.0, 8.0]
+    dst_cam_look_at: [5.60, 0.0, 1.55]
+    trajectory: interpol_sine
+    move_time: 13
+    modal_time: 0
+    camera_control: none  # Change to relative_pose for 6-DoF camera control.
+    motion_bucket_range: [127, 127]
+    cond_aug: 0.02
+    mock_dset_size: 716500  # = 400x train dataset count
+    reverse_prob: 0.0
+    data_gpu: 0
+    spread_radius: 1
+    render_width: 420
+    render_height: 280
+    batch_size: 2
+    num_workers: 2
+
+lightning:
+  modelcheckpoint:
+    params:
+      every_n_train_steps: 1250
+      save_last: True
+      save_top_k: -1
+
+  callbacks:
+    metrics_over_trainsteps_checkpoint:
+      params:
+        every_n_train_steps: 5000000
+
+    image_logger:
+      target: main.ImageLogger
+      params:
+        disabled: False
+        enable_autocast: False
+        batch_frequency: 100
+        max_images: 8
+        increase_log_steps: False
+        log_first_step: True
+        log_before_first_step: False
+        log_train: True
+        log_images_kwargs:
+          use_ema_scope: False
+          N: 8
+          n_rows: 2
+
+  trainer:
+    devices: 0,
+    benchmark: True
+    accumulate_grad_batches: 1
+    num_sanity_val_steps: 0
+    val_check_interval: 0
+    limit_val_batches: 0
+    max_epochs: 300
