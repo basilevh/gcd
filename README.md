@@ -8,7 +8,7 @@ To be published in ECCV 2024
 
 [Paper](https://gcd.cs.columbia.edu/GCD_v4.pdf) | [Website](https://gcd.cs.columbia.edu/) | [Results](https://gcd.cs.columbia.edu/#results) | [Datasets](https://gcd.cs.columbia.edu/#datasets) | [Models](https://github.com/basilevh/gcd#pretrained-models)
 
-https://github.com/user-attachments/assets/719c6ad7-9870-4919-a39c-8ec988133a89
+https://github.com/user-attachments/assets/4be8ff92-a09a-442d-afb1-807226c1b2f9
 
 This repository contains the Python code published as part of our paper _"[Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis](https://gcd.cs.columbia.edu/GCD_v4.pdf)"_ (abbreviated **GCD**).
 
