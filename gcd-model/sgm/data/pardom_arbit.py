@@ -7,10 +7,7 @@ import os  # noqa
 import sys  # noqa
 
 # Library imports.
-import cv2
 import glob
-import imageio
-import joblib
 import json
 import lovely_tensors
 import multiprocessing as mp
@@ -162,7 +159,7 @@ class ParallelDomainSynthViewDataset(torch.utils.data.Dataset):
         return self.mock_dset_size
 
     def __getitem__(self, idx):
-        verbose = (self.total_counter.value <= 10)
+        verbose = (self.total_counter.value <= 10 or self.total_counter.value % 200 == 0)
         self.total_counter.value += 1
 
         start_time = time.time()
@@ -289,15 +286,16 @@ class ParallelDomainSynthViewDataset(torch.utils.data.Dataset):
                 break
 
             except Exception as e:
+                wait_time = 0.2 + retry_idx * 0.02
                 if verbose or retry_idx in [0, 1, 2, 4, 8, 16, 32, 64, 128]:
-                    print(f'[red]Warning: Failed to load example: '
+                    print(f'[red]Warning: Skipping example that failed to load: '
                           f'scene_idx: {scene_idx}  scene_dn: {scene_dp}  '
-                          f'exception: {e}  retry_idx: {retry_idx}')
+                          f'exception: {e}  retry_idx: {retry_idx}  wait_time: {wait_time:.2f}')
                 if verbose and retry_idx == 4:
                     print(f'[red]Traceback: {traceback.format_exc()}')
-                time.sleep(0.2 + retry_idx * 0.02)
                 if retry_idx >= self.max_retries - 2:
-                    raise e
+                    raise e  # This effectively stops the training job.
+                time.sleep(wait_time)
 
         # Add extra info / metadata for debugging / logging.
         data_dict['dset'] = torch.tensor([2])
@@ -757,8 +755,8 @@ class ParallelDomainSynthViewDataset(torch.utils.data.Dataset):
         else:
             motion_value = int(round(self.motion_bucket_range[0] +
                                      motion_range * motion_amount))
-        if verbose:
-            print(f'[gray]motion_amount: {motion_amount:.3f}  motion_value: {motion_value}')
+        # if verbose:
+        #     print(f'[gray]motion_amount: {motion_amount:.3f}  motion_value: {motion_value}')
         motion_bucket_id = torch.ones((Tcm,), dtype=torch.int32) * motion_value
         # (Tcm) = (14) tensor of int32 = all 127.
 

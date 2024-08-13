@@ -4,7 +4,7 @@ Basile Van Hoorick, Rundi Wu, Ege Ozguroglu, Kyle Sargent, Ruoshi Liu, Pavel Tok
 
 Columbia University, Stanford University, Toyota Research Institute
 
-To be published in ECCV 2024
+To be published soon in ECCV 2024 (Oral)!
 
 [Paper](https://gcd.cs.columbia.edu/GCD_v4.pdf) | [Website](https://gcd.cs.columbia.edu/) | [Results](https://gcd.cs.columbia.edu/#results) | [Datasets](https://gcd.cs.columbia.edu/#datasets) | [Models](https://github.com/basilevh/gcd#pretrained-models)
 
@@ -15,6 +15,24 @@ This repository contains the Python code published as part of our paper _"[Gener
 We provide setup instructions, pretrained models, inference code, training code, evaluation code, and dataset generation.
 
 Please note that I refactored and cleaned the codebase for public release, mostly to simplify the structure as well as enhance readability and modularity, but I have not thoroughly vetted everything yet, so if you encounter any problems, please let us know by opening an issue, and feel free to suggest possible bugfixes if you have any.
+
+Table of contents:
+
+- [Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis](#generative-camera-dolly-extreme-monocular-dynamic-novel-view-synthesis)
+  - [Setup](#setup)
+  - [Pretrained Models](#pretrained-models)
+  - [Inference (Gradio)](#inference-gradio)
+  - [Dataset Processing](#dataset-processing)
+  - [Training](#training)
+  - [Evaluation](#evaluation)
+    - [Custom Controls](#custom-controls)
+    - [Metrics](#metrics)
+    - [Custom Data (No GT)](#custom-data-no-gt)
+  - [Dataset Generation](#dataset-generation)
+    - [Kubric-4D](#kubric-4d)
+    - [ParallelDomain-4D](#paralleldomain-4d)
+    - [Data Visualization](#data-visualization)
+  - [Citations](#citations)
 
 ## Setup
 
@@ -54,7 +72,7 @@ All above checkpoints are 20.3 GB in size. Place them in `pretrained/` such that
 
 ## Inference (Gradio)
 
-This section is for casually running our model on custom videos. For thorough quantitative evaluation on Kubric-4D or ParallelDomain-4D, or any command line inference outside of those two datasets that still saves results and visualizations to your disk, please see the *Evaluation* section below.
+This section is for casually running our model on custom videos. For thorough quantitative evaluation on Kubric-4D or ParallelDomain-4D, or any command line inference outside of those two datasets that saves results and visualizations to your disk, please see the *Evaluation* section below instead.
 
 For a **Kubric-4D** model, run:
 ```
@@ -106,7 +124,7 @@ Both conversion scripts above mainly rely on GPUs for fast processing and can ap
 
 If you are training on your own dataset, I recommend creating a new data loader using the provided code as a reference. If you are using our data, please follow the *Dataset Processing* section above first.
 
-First, download one of the two following available Stable Video Diffusion checkpoints: [SVD (14 frames)](https://huggingface.co/stabilityai/stable-video-diffusion-img2vid/blob/main/svd.safetensors) or [SVD-XT (25 frames)](https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/blob/main/svd_xt.safetensors), and update the checkpoint path in the config files referenced below. We work exclusively with the 14-frame version of SVD in our experiments due to resource constraints, so please change the other relevant config values if you are working with the 25-frame SVD-XT.
+First, download one of the two following available Stable Video Diffusion checkpoints: [SVD (14 frames)](https://huggingface.co/stabilityai/stable-video-diffusion-img2vid/blob/main/svd.safetensors) or [SVD-XT (25 frames)](https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/blob/main/svd_xt.safetensors), and place it in `pretrained/` (or update the checkpoint path in the config files referenced below). We work exclusively with the 14-frame version of SVD in our experiments due to resource constraints, so please change the other relevant config values if you are working with the 25-frame SVD-XT.
 
 To start a GCD training run on **Kubric-4D** (gradual, max 90 deg):
 ```
@@ -136,7 +154,7 @@ The resulting model will be able to perform 3-DoF monocular dynamic novel view s
 To start a GCD training run on **ParallelDomain-4D** (gradual, RGB):
 ```
 cd gcd-model/
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python train.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python main.py \
     --base=configs/train_pardom_rgb.yaml \
     --name=pd_v1 --seed=1234 --num_nodes=1 --wandb=0 \
     model.base_learning_rate=2e-5 \
@@ -165,11 +183,11 @@ Note that in all above commands, GPU index 0 (`data.params.data_gpu`) is reserve
 
 The VRAM usage for those will be around 50 GB per GPU in the provided examples. The three largest determining factors for VRAM are: (1) the batch size, (2) the spatial resolution (`frame_width` and `frame_height`), (3) the number of frames (SVD versus SVD-XT), and (4) whether EMA weight averaging is active. Most of our experiments were done on single nodes with 8x NVIDIA A100 or 8x NVIDIA A6000 devices, all without EMA due to limited compute.
 
-Logs and visualizations will be stored to a dated subfolder within the `logs/` folder, which resides at the same level as `gcd-model/`. If training ever gets interrupted, you can resume by pointing `--resume_from_checkpoint` to the latest valid checkpoint file, for example `--resume_from_checkpoint=../logs/2024-02-30T12-15-05_kb_v1/checkpoints/last.ckpt`.
+Logs and visualizations will be stored to a dated subfolder within the `logs/` folder, which resides at the same level as `gcd-model/`. For each run, training visualizations are stored in the `visuals/` subfolder. If training ever gets interrupted, you can resume by pointing `--resume_from_checkpoint` to the latest valid checkpoint file, for example `--resume_from_checkpoint=../logs/2024-02-30T12-15-05_kb_v1/checkpoints/last.ckpt`.
 
 ## Evaluation
 
-The following script generates many types of outputs for visual inspection and evaluation, and has to be adapted for each benchmark. For lighter operations, see the *Inference* section above. If you are using our data, make sure you followed the *Dataset Processing* section above first. If you are evaluating on your own dataset with ground truth, I recommend creating a new data loader and modifying the test script below.
+The following script generates many types of outputs for visual inspection and evaluation, and has to be adapted for each benchmark. For lighter operations, see the *Inference* section above. If you are using our data, make sure you followed the *Dataset Processing* section above first. If you are evaluating on your own custom dataset with ground truth, I recommend creating a new data loader and modifying the test script below.
 
 To evaluate a GCD finetuned model on **Kubric-4D**, update the paths in `kubric_test20.txt` and run:
 ```
@@ -210,37 +228,37 @@ CUDA_VISIBLE_DEVICES=0,1 python scripts/test.py --gpus=0,1 \
 --config_path=configs/infer_kubric.yaml \
 --model_path=../logs/*_kb_v1/checkpoints/epoch=00000-step=00010000.ckpt \
 --input=../eval/list/kubric_test20.txt \
---output=../eval/output/kubric_mytest2 \
---autocast=1 --num_samples=2 --num_steps=25 \
+--output=../eval/output/kubric_mytest2_cc \
 --azimuth_start=70.0 --elevation_start=10.0 --radius_start=15.0 \
 --delta_azimuth=30.0 --delta_elevation=15.0 --delta_radius=1.0 \
---frame_start=0 --frame_stride=2 --frame_rate=12
+--frame_start=0 --frame_stride=2 --frame_rate=12 \
+--reproject_rgbd=0 --autocast=1 --num_samples=2 --num_steps=25
 ```
 
 In ParallelDomain-4D, the six pose-related arguments are not applicable, but video clip frame bounds can still be chosen.
 
 ### Metrics
 
-(TBD)
+The above `test.py` script saves per-scene `*_metrics.json` files under the `extra/` subfolder that contain overall as well as per-frame PSNR and SSIM numbers. It also saves all individual input, predicted, and target frames as images for each example processed by the model. Feel free to use these various outputs in your own quantitative evaluation workflow if you want to compute additional and/or aggregate metrics.
 
 ### Custom Data (No GT)
 
 Compared to the main *Evaluation* section, this script does not depend on ground truth, which may not exist. Compared to the *Inference (Gradio)* section, this script exports more information and visualizations.
 
-Prepare a direct path to either a video file or an image folder, or a list of either video files or image folders, and run:
+Prepare a direct path to either a video file or an image folder, or a list of either video files or image folders (in a `.txt` file with full paths), and run:
 ```
 cd gcd-model/
-CUDA_VISIBLE_DEVICES=0,1 python scripts/infer.py --gpus=0,1 \
+CUDA_VISIBLE_DEVICES=0 python scripts/infer.py --gpus=0 \
 --config_path=configs/infer_kubric.yaml \
 --model_path=../pretrained/kubric_gradual_max90.ckpt \
 --input=/path/to/video.mp4 \
 --output=../eval/output/kubric_myinfer1 \
---autocast=1 --num_samples=2 --num_steps=25 \
 --delta_azimuth=30.0 --delta_elevation=15.0 --delta_radius=1.0 \
---frame_start=0 --frame_stride=2 --frame_rate=12
+--frame_start=0 --frame_stride=2 --frame_rate=12 \
+--autocast=1 --num_samples=2 --num_steps=25
 ```
 
-Note that `--frame_rate` should reflect the target FPS *after* temporal subsampling of the input video, not *before*.
+Note that `--frame_rate` should reflect the target FPS *after* temporal subsampling of the input video, not *before*. If you want to evaluate multiple examples, I recommend using a list by setting `--input=/path/to/list.txt` to reduce the model loading overhead.
 
 ## Dataset Generation
 
@@ -262,7 +280,7 @@ The subfolder `data-gen/kubric` is largely the same as [this commit](https://git
 
 This is the command we used to generate the final Kubric-4D dataset (note the `rm -rf /tmp/` line):
 ```
-cd data-gen/kubric/
+cd data-gen/
 for i in {1..110}
 do
 python export_kub_mv.py --mass_est_fp=gpt_mass_v4.txt \
@@ -286,13 +304,13 @@ All scenes are generated i.i.d., so in our version of this dataset, we define th
 
 This dataset comes from a [service](https://paralleldomain.com/) and cannot be regenerated. Please see the [download link](https://gcd.cs.columbia.edu/#datasets) for our copy.
 
-Note that some scene folders do not exist (there are 1531 scene folders but the index goes up to 2143), and some scenes have a couple missing frames, which is why our dataloader is designed to be robust to both issues. Also, unlike Kubric, the scenes are not decorrelated with respect to the index, hence in `pardom_datasplit.json` we pre-selected random subsets for training, validation, and testing.
+Note that some scene folders do not exist (there are 1531 scene folders but the index goes up to 2143), and some scenes have a couple missing frames, which is why our dataloader is designed to be robust to both issues. You might see a few warning messages during training but this is normal. Also, unlike Kubric, the scenes are not decorrelated with respect to the index, hence in `pardom_datasplit.json` we pre-selected random subsets for training, validation, and testing.
 
 We define the validation + test set sizes to be 61 + 61 scenes respectively (each roughly 4% of the total dataset).
 
 ### Data Visualization
 
-(TBD)
+I have written some tools, based on [TRI camviz](https://github.com/TRI-ML/camviz), to interactively visualize example scenes from Kubric-4D and ParallelDomain-4D on your local computer. I might release them here later, but feel free to contact me (Basile) in the meantime for the source code.
 
 ## Citations
 

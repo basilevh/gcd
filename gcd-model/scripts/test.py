@@ -30,7 +30,6 @@ import traceback
 import warnings
 from einops import rearrange
 from lovely_numpy import lo
-from omegaconf import OmegaConf
 from rich import print
 from tqdm import TqdmExperimentalWarning
 
@@ -91,9 +90,9 @@ def test_args():
     parser.add_argument('--delta_azimuth', type=float, default=30.0)
     parser.add_argument('--delta_elevation', type=float, default=15.0)
     parser.add_argument('--delta_radius', type=float, default=0.0)
-    parser.add_argument('--frame_start', type=int, default=0)
-    parser.add_argument('--frame_stride', type=int, default=2)
-    parser.add_argument('--frame_rate', type=int, default=12)
+    parser.add_argument('--frame_start', type=int, default=-1)
+    parser.add_argument('--frame_stride', type=int, default=-1)
+    parser.add_argument('--frame_rate', type=int, default=-1)
 
     # Data processing options.
     parser.add_argument('--frame_width', type=int, default=384)
@@ -191,6 +190,10 @@ def load_input_gt(args, worker_idx, example, train_config, control_info, device)
             if args.frame_rate < 0:
                 controls[2] = int(round(24 / controls[1]))  # This corresponds to fps_id.
 
+        else:
+            assert args.frame_start >= 0 and args.frame_stride >= 0 and args.frame_rate >= 0, \
+                f'{args.frame_start} {args.frame_stride} {args.frame_rate}'
+
         # KubricSynthViewDataset expects: [scene_idx, frame_skip, frame_start, reverse,
         # azimuth_start, azimuth_end, elevation_start, elevation_end, radius_start, radius_end].
         my_dset.set_next_example(
@@ -256,6 +259,10 @@ def load_input_gt(args, worker_idx, example, train_config, control_info, device)
                 controls[1] = control_entry['frame_skip']
             if args.frame_rate < 0:
                 controls[2] = int(round(10 / controls[1]))  # This corresponds to fps_id.
+
+        else:
+            assert args.frame_start >= 0 and args.frame_stride >= 0 and args.frame_rate >= 0, \
+                f'{args.frame_start} {args.frame_stride} {args.frame_rate}'
 
         # ParallelDomainSynthViewDataset expects: [scene_idx, scene_dn, frame_skip, frame_start,
         # reverse].
@@ -422,14 +429,6 @@ def calculate_metrics(args, gt_rgb, reproject_rgb, pred_samples):
                 cur_frame_psnr_occ.append(cur_psnr_occ)
                 cur_frame_ssim_occ.append(cur_ssim_occ)
 
-        else:
-            cur_frame_psnr = [np.nan] * Tcm
-            cur_frame_ssim = [np.nan] * Tcm
-            cur_frame_psnr_vis = [np.nan] * Tcm
-            cur_frame_ssim_vis = [np.nan] * Tcm
-            cur_frame_psnr_occ = [np.nan] * Tcm
-            cur_frame_ssim_occ = [np.nan] * Tcm
-
         frame_psnr.append(cur_frame_psnr)
         frame_ssim.append(cur_frame_ssim)
         frame_psnr_vis.append(cur_frame_psnr_vis)
@@ -451,11 +450,11 @@ def calculate_metrics(args, gt_rgb, reproject_rgb, pred_samples):
     mean_psnr_occ = np.nanmean(frame_psnr_occ, axis=1)  # (S) array of float.
     mean_ssim_occ = np.nanmean(frame_ssim_occ, axis=1)  # (S) array of float.
 
-    uncertainty = np.mean(np.std(pred_samples_rgb, axis=0), axis=1)
+    uncertainty = np.nanmean(np.std(pred_samples_rgb, axis=0), axis=1)
     # (Tcm, Hp, Wp) array of float32 in [0, 1].
-    frame_diversity = np.mean(uncertainty, axis=(1, 2))
+    frame_diversity = np.nanmean(uncertainty, axis=(1, 2))
     # (Tcm) array of float32 in [0, 1].
-    mean_diversity = np.mean(frame_diversity)
+    mean_diversity = np.nanmean(frame_diversity)
     # single float.
 
     if reproject_rgb is not None:
@@ -465,11 +464,11 @@ def calculate_metrics(args, gt_rgb, reproject_rgb, pred_samples):
         pred_samples_occ = [np.stack([x[t][occluded_mask_bc[t]] for x in pred_samples_rgb], axis=0)
                             for t in range(Tcm)]
         # 2x List-T of (S, N) of float32 in [0, 1].
-        frame_diversity_vis = np.array([np.mean(np.std(x, axis=0)) for x in pred_samples_vis])
-        frame_diversity_occ = np.array([np.mean(np.std(x, axis=0)) for x in pred_samples_occ])
+        frame_diversity_vis = np.array([np.nanmean(np.std(x, axis=0)) for x in pred_samples_vis])
+        frame_diversity_occ = np.array([np.nanmean(np.std(x, axis=0)) for x in pred_samples_occ])
         # 2x (Tcm) array of float32 in [0, 1].
-        mean_diversity_vis = np.mean(frame_diversity_vis)
-        mean_diversity_occ = np.mean(frame_diversity_occ)
+        mean_diversity_vis = np.nanmean(frame_diversity_vis)
+        mean_diversity_occ = np.nanmean(frame_diversity_occ)
         # 2x single float.
 
     metrics_dict = dict()
@@ -936,19 +935,17 @@ def process_example(args, worker_idx, example_idx, example, model_bundle, contro
     # Contains either just frame rate or frame rate + camera controls.
     output_fn1 += f'_{controls_friendly[2]}'
 
-    if args.num_samples >= 1:
-        psnr = np.nanmean(metrics_dict['mean_psnr'])
-        ssim = np.nanmean(metrics_dict['mean_ssim'])
-        diversity = metrics_dict['mean_diversity']
-        output_fn1 += f'_psnr{psnr:.2f}_ssim{ssim:.3f}_div{diversity:.3f}'
+    # if args.num_samples >= 1:
+    #     psnr = np.nanmean(metrics_dict['mean_psnr'])
+    #     ssim = np.nanmean(metrics_dict['mean_ssim'])
+    #     diversity = metrics_dict['mean_diversity']
+    #     # output_fn1 += f'_psnr{psnr:.2f}_ssim{ssim:.3f}_div{diversity:.3f}'
 
     # For more prominent / visible stuff:
     output_fp1 = os.path.join(args.output, output_fn1)
 
     # For less prominent but still useful stuff:
-    frame_start = int(controls[0])
-    extra_dn = f'extra_fs{frame_start}'  # I often export multiple offsets to the same path.
-    output_fp2 = os.path.join(args.output, extra_dn, output_fn2)
+    output_fp2 = os.path.join(args.output, 'extra', output_fn2)
 
     # Save results to disk.
     print()
@@ -1034,7 +1031,7 @@ def worker_fn(args, worker_idx, num_workers, gpu_idx, model_path, example_list):
 def main(args):
 
     # Save the arguments to this training script.
-    args_fp = os.path.join(args.output, 'args_basile_test.json')
+    args_fp = os.path.join(args.output, 'args_test.json')
     eval_utils.save_json(vars(args), args_fp)
     print(f'[yellow]Saved script args to {args_fp}')
 

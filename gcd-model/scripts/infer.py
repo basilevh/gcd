@@ -30,7 +30,6 @@ import traceback
 import warnings
 from einops import rearrange
 from lovely_numpy import lo
-from omegaconf import OmegaConf
 from rich import print
 from tqdm import TqdmExperimentalWarning
 
@@ -116,6 +115,9 @@ def load_input(args, worker_idx, example, model_bundle):
     :return batch (dict).
     '''
     [model, train_config, test_config, device, model_name] = model_bundle[0:5]
+
+    assert args.frame_start >= 0 and args.frame_stride >= 0 and args.frame_rate >= 0, \
+        f'{args.frame_start} {args.frame_stride} {args.frame_rate}'
 
     controls = np.array([args.frame_start, args.frame_stride, args.frame_rate,
                         args.delta_azimuth, args.delta_elevation, args.delta_radius],
@@ -507,19 +509,17 @@ def process_example(args, worker_idx, example_idx, example, model_bundle):
     # Contains either just frame rate or frame rate + camera controls.
     output_fn1 += f'_{controls_friendly[2]}'
 
-    if args.num_samples >= 1:
-        psnr = np.nanmean(metrics_dict['mean_psnr'])
-        ssim = np.nanmean(metrics_dict['mean_ssim'])
-        diversity = metrics_dict['mean_diversity']
-        output_fn1 += f'_psnr{psnr:.2f}_ssim{ssim:.3f}_div{diversity:.3f}'
+    # if args.num_samples >= 1:
+    #     psnr = np.nanmean(metrics_dict['mean_psnr'])
+    #     ssim = np.nanmean(metrics_dict['mean_ssim'])
+    #     diversity = metrics_dict['mean_diversity']
+    #     # output_fn1 += f'_psnr{psnr:.2f}_ssim{ssim:.3f}_div{diversity:.3f}'
 
     # For more prominent / visible stuff:
     output_fp1 = os.path.join(args.output, output_fn1)
 
     # For less prominent but still useful stuff:
-    frame_start = int(controls[0])
-    extra_dn = f'extra_fs{frame_start}'  # I often export multiple offsets to the same path.
-    output_fp2 = os.path.join(args.output, extra_dn, output_fn2)
+    output_fp2 = os.path.join(args.output, 'extra', output_fn2)
 
     # Save results to disk.
     print()
@@ -599,7 +599,7 @@ def worker_fn(args, worker_idx, num_workers, gpu_idx, model_path, example_list):
 def main(args):
 
     # Save the arguments to this training script.
-    args_fp = os.path.join(args.output, 'args_basile_test.json')
+    args_fp = os.path.join(args.output, 'args_infer.json')
     eval_utils.save_json(vars(args), args_fp)
     print(f'[yellow]Saved script args to {args_fp}')
 

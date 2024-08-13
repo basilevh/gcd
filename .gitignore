@@ -2,3 +2,6 @@
 *.ckpt
 *.pyc
 gradio_output/
+logs/
+output/
+*.safetensors

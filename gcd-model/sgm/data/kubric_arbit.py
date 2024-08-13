@@ -7,9 +7,6 @@ import os  # noqa
 import sys  # noqa
 
 # Library imports.
-import cv2
-import imageio
-import joblib
 import lovely_tensors
 import multiprocessing as mp
 import numpy as np
@@ -20,7 +17,6 @@ import torch.nn
 import torch.nn.functional
 import torch.utils.data
 import traceback
-from collections.abc import Iterable
 from einops import rearrange
 from lovely_numpy import lo
 from rich import print
@@ -214,15 +210,16 @@ class KubricSynthViewDataset(torch.utils.data.Dataset):
                 break
 
             except Exception as e:
+                wait_time = 0.2 + retry_idx * 0.02
                 if verbose or retry_idx in [0, 1, 2, 4, 8, 16, 32, 64, 128]:
-                    print(f'[red]Warning: Failed to load example: '
+                    print(f'[red]Warning: Skipping example that failed to load: '
                           f'scene_idx: {scene_idx}  scene_dn: {scene_dp}  '
-                          f'exception: {e}  retry_idx: {retry_idx}')
+                          f'exception: {e}  retry_idx: {retry_idx}  wait_time: {wait_time:.2f}')
                 if verbose and retry_idx == 4:
                     print(f'[red]Traceback: {traceback.format_exc()}')
-                time.sleep(0.2 + retry_idx * 0.02)
                 if retry_idx >= self.max_retries - 2:
-                    raise e
+                    raise e  # This effectively stops the training job.
+                time.sleep(wait_time)
 
         # Add extra info / metadata for debugging / logging.
         data_dict['dset'] = torch.tensor([1])
@@ -302,10 +299,10 @@ class KubricSynthViewDataset(torch.utils.data.Dataset):
                                                 np.sin(self.elevation_range[1] / 180.0 * np.pi)])
                         sin_elev_sample = np.random.uniform(*elev_bounds)
                         elevation_start = np.arcsin(sin_elev_sample) * 180.0 / np.pi
-                        if verbose:
-                            print(f'[gray]elev_bounds: {elev_bounds}  '
-                                  f'sin_elev_sample: {sin_elev_sample:.3f}  '
-                                  f'elevation_start: {elevation_start:.3f}')
+                        # if verbose:
+                        #     print(f'[gray]elev_bounds: {elev_bounds}  '
+                        #           f'sin_elev_sample: {sin_elev_sample:.3f}  '
+                        #           f'elevation_start: {elevation_start:.3f}')
                     else:
                         # This may end up being too concentrated towards the two poles.
                         elevation_start = np.random.uniform(*self.elevation_range)
@@ -581,8 +578,8 @@ class KubricSynthViewDataset(torch.utils.data.Dataset):
         else:
             motion_value = int(round(self.motion_bucket_range[0] +
                                      motion_range * motion_amount))
-        if verbose:
-            print(f'[gray]motion_amount: {motion_amount:.3f}  motion_value: {motion_value}')
+        # if verbose:
+        #     print(f'[gray]motion_amount: {motion_amount:.3f}  motion_value: {motion_value}')
         motion_bucket_id = torch.ones((Tcm,), dtype=torch.int32) * motion_value
         # (Tcm) = (14) tensor of int32 = all 127.
 

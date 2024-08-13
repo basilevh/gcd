@@ -1,6 +1,6 @@
 
-
 import math
+import os
 from contextlib import contextmanager
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -189,6 +189,7 @@ class DiffusionEngine(pl.LightningModule):
         self.validation_step_outputs = []
 
     def init_from_ckpt(self, path: str,) -> None:
+        assert os.path.exists(path) and os.path.isfile(path)
         if path.endswith("ckpt"):
             sd = torch.load(path, map_location="cpu")["state_dict"]
         elif path.endswith("safetensors"):
@@ -618,7 +619,7 @@ class DiffusionEngine(pl.LightningModule):
         if isinstance(self.first_stage_model.decoder, VideoDecoder):
             # Handle sampling for video a bit differently.
             video_dict = self.sample_video(
-                batch, enter_ema=True, limit_batch=1, force_uc=False, keep_intermediate=False)
+                batch, enter_ema=True, limit_batch=1)
 
             video_dict['vertcat'] = \
                 torch.cat([video_dict['cond_video'], video_dict['sampled_video'],

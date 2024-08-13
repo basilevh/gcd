@@ -308,6 +308,7 @@ class SetupCallback(Callback):
             )
 
         else:
+            pass
             # ModelCheckpoint callback created log directory --- remove it
             # if not MULTINODE_HACKS and not self.resume and os.path.exists(self.logdir):
             #     dst, name = os.path.split(self.logdir)
