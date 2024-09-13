@@ -129,7 +129,7 @@ First, download one of the two following available Stable Video Diffusion checkp
 To start a GCD training run on **Kubric-4D** (gradual, max 90 deg):
 ```
 cd gcd-model/
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python train.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python main.py \
     --base=configs/train_kubric_max90.yaml \
     --name=kb_v1 --seed=1234 --num_nodes=1 --wandb=0 \
     model.base_learning_rate=2e-5 \
