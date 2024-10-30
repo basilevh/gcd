@@ -4,7 +4,7 @@ Basile Van Hoorick, Rundi Wu, Ege Ozguroglu, Kyle Sargent, Ruoshi Liu, Pavel Tok
 
 Columbia University, Stanford University, Toyota Research Institute
 
-To be published soon in ECCV 2024 (Oral)!
+Published in ECCV 2024 (Oral)
 
 [Paper](https://gcd.cs.columbia.edu/GCD_v4.pdf) | [Website](https://gcd.cs.columbia.edu/) | [Results](https://gcd.cs.columbia.edu/#results) | [Datasets](https://gcd.cs.columbia.edu/#datasets) | [Models](https://github.com/basilevh/gcd#pretrained-models)
 
