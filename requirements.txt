@@ -19,7 +19,7 @@ natsort
 numpy
 omegaconf
 open_clip_torch
-opencv_python
+opencv_python  # or opencv-python?
 pandas
 packaging
 peft

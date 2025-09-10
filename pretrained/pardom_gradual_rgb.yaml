@@ -193,9 +193,9 @@ model:
 data:
   target: sgm.data.pardom_arbit.ParallelDomainSynthViewModule
   params:
-    dset_root: /path/to/ParallelDomain-4D/data
-    pcl_root: /path/to/ParallelDomain-4D/pcl
-    split_json: pd_split.json
+    dset_root: /datasets/ParDom-4D/data
+    pcl_root: /datasets/ParDom-4D/pcl
+    split_json: /home/basile/ws/repos/gcd/eval/list/pardom_datasplit.json
     train_videos: 1433
     val_videos: 50
     test_videos: 50

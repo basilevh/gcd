@@ -194,8 +194,8 @@ model:
 data:
   target: sgm.data.kubric_arbit.KubricSynthViewModule
   params:
-    dset_root: /path/to/Kubric-4D/data
-    pcl_root: /path/to/Kubric-4D/pcl
+    dset_root: /datasets/Kubric-4D/data
+    pcl_root: /datasets/Kubric-4D/pcl
     train_videos: 2800
     val_videos: 100
     test_videos: 100
