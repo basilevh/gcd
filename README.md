@@ -314,7 +314,7 @@ I have written some tools, based on [TRI camviz](https://github.com/TRI-ML/camvi
 
 ## Citations
 
-If you use this codebase in your work (or any significant part of it, such as the changes needed to finetune SVD), please cite our paper:
+If you find this work and/or codebase useful, please cite our paper:
 ```
 @article{vanhoorick2024gcd,
     title={Generative Camera Dolly: Extreme Monocular Dynamic Novel View Synthesis},
