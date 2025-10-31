@@ -194,8 +194,8 @@ model:
 data:
   target: sgm.data.kubric_arbit.KubricSynthViewModule
   params:
-    dset_root: /path/to/Kubric-4D/data
-    pcl_root: /path/to/Kubric-4D/pcl
+    dset_root: /datasets/Kubric-4D/data
+    pcl_root: /datasets/Kubric-4D/pcl
     train_videos: 2800
     val_videos: 100
     test_videos: 100
@@ -218,7 +218,7 @@ data:
     delta_radius_range: [-3.0, 3.0]
     elevation_sample_sin: True
     trajectory: interpol_linear
-    move_time: 13
+    move_time: 0
     modal_time: 0
     camera_control: spherical
     motion_bucket_range: [0, 255]

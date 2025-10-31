@@ -5,3 +5,4 @@ gradio_output/
 logs/
 output/
 *.safetensors
+*debug.log
