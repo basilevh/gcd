@@ -80,9 +80,12 @@ def get_pardom_extrinsics_matrix(extrinsics_dict):
     '''
     Adapted from convert_pcl_pardom.py.
     '''
-    rot_q = extrinsics_dict['rotation']
-    rot_t = extrinsics_dict['translation']
-    rot_m = Quaternion(rot_q['qw'], rot_q['qx'], rot_q['qy'], rot_q['qz']).rotation_matrix
+    rot_q = extrinsics_dict['rotation'] if 'rotation' in extrinsics_dict else extrinsics_dict['orientation']
+    rot_t = extrinsics_dict['translation'] if 'translation' in extrinsics_dict else extrinsics_dict['position']
+    if 'qw' in rot_q:
+        rot_m = Quaternion(rot_q['qw'], rot_q['qx'], rot_q['qy'], rot_q['qz']).rotation_matrix
+    else:
+        rot_m = Quaternion(rot_q['w'], rot_q['x'], rot_q['y'], rot_q['z']).rotation_matrix
     extrinsics_matrix = torch.eye(4, dtype=torch.float32)
     extrinsics_matrix[0:3, 0:3] = torch.tensor(rot_m)
     extrinsics_matrix[0:3, 3] = torch.tensor([rot_t['x'], rot_t['y'], rot_t['z']])

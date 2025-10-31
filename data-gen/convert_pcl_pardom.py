@@ -81,9 +81,9 @@ def process_example(worker_idx, gpu_idx, example,
 
     (scene_dp, output_dp) = example
 
-    if ignore_if_exist and is_finished(output_dp, 40):
+    if ignore_if_exist and is_finished(output_dp, 50):
         print(f'[yellow]{worker_idx}: Skipping {output_dp} because it already contains '
-              f'40 or more files...')
+              f'50 or more files...')
         return False
 
     device = torch.device(f'cuda:{gpu_idx}')
@@ -294,7 +294,7 @@ def main(input_root='/path/to/ParallelDomain-4D/data',
                       os.path.join(output_root, x)) for x in example_dns]
 
     if ignore_if_exist:
-        filtered_examples = [(x, y) for (x, y) in example_pairs if not (is_finished(y, 40))]
+        filtered_examples = [(x, y) for (x, y) in example_pairs if not (is_finished(y, 50))]
     else:
         filtered_examples = example_pairs
     print(f'[cyan]Found {len(example_pairs)} examples to process, filtered down to '
