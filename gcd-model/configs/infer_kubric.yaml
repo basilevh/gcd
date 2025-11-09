@@ -5,7 +5,7 @@ model:
   params:
     scale_factor: 0.18215
     disable_first_stage_autocast: True
-    ckpt_path: ../pretrained/kubric_gradual_max90.ckpt
+    ckpt_path: /pretrained/gcd/kubric_gradual_max90.ckpt
     # NOTE: ckpt_path, ckpt_has_ema, use_ema, and other options are overwritten
     # as needed in test scripts and gradio demo.
 

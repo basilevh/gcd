@@ -5,7 +5,7 @@ model:
     scale_factor: 0.18215
     disable_first_stage_autocast: True
     disable_loss_fn_autocast: True
-    ckpt_path: ../pretrained/pardom_gradual_rgb.ckpt
+    ckpt_path: /pretrained/gcd/pardom_gradual_rgb.ckpt
     ckpt_has_ema: False
     use_ema: False
     ema_decay_rate: 0.999
