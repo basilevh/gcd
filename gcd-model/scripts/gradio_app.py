@@ -517,7 +517,12 @@ def run_demo(device='cuda',
         )
 
     demo.queue(max_size=20)
-    demo.launch(share=True, debug=debug, server_port=port)
+    demo.launch(
+        share=True,
+        debug=debug,
+        server_port=port,
+        allowed_paths=[os.path.abspath(examples_path), os.path.abspath(output_path)]
+    )
 
 
 if __name__ == '__main__':
