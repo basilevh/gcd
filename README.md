@@ -312,12 +312,14 @@ We define the validation + test set sizes to be 61 + 61 scenes respectively (eac
 
 I have written some tools, based on [TRI camviz](https://github.com/TRI-ML/camviz), to interactively visualize example scenes from Kubric-4D and ParallelDomain-4D on your local computer. I might release them here later, but feel free to contact me (Basile) in the meantime for the source code.
 
-## License
+## Licensing
 
-Every component of this work is released under a **non-commercial license**, which includes:
-* The GCD model + codebase
-* The Kubric-4D dataset + generation code
-* The ParallelDomain-4D dataset
+Each component of this work is released under the following licenses:
+* GCD codebase: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+* GCD model weights: [CC BY-NC-SA 4.]](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+* Kubric-4D dataset: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
+* Kubric-4D generation code: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
+* ParallelDomain-4D dataset: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 
 ## Citations
 
