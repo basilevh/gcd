@@ -316,7 +316,7 @@ I have written some tools, based on [TRI camviz](https://github.com/TRI-ML/camvi
 
 Each component of this work is released under the following licenses:
 * GCD codebase: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
-* GCD model weights: [CC BY-NC-SA 4.]](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+* GCD model weights: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 * Kubric-4D dataset: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 * Kubric-4D generation code: [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
 * ParallelDomain-4D dataset: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
