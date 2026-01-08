@@ -74,7 +74,11 @@ class _NumpyEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, np.ndarray):
             return o.tolist()
-        return json.JSONEncoder.default(self, o)
+        elif isinstance(o, (np.floating,)):
+            return float(o)
+        elif isinstance(o, (np.integer,)):
+            return int(o)
+        return super().default(o)
 
 
 def write_png(data: np.array, filename: PathLike) -> None:

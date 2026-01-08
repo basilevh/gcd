@@ -189,6 +189,7 @@ class Blender(core.View):
     def use_gpu(self, value: bool):
         self.blender_scene.cycles.device = "GPU" if value else "CPU"
         if value:
+            bpy.context.preferences.addons["cycles"].preferences.compute_device_type = "CUDA" # or "OPTIX"
             # call get_devices() to let Blender detect GPU devices
             bpy.context.preferences.addons["cycles"].preferences.get_devices()
             devices_used = [d.name for d in bpy.context.preferences.addons["cycles"].preferences.devices
